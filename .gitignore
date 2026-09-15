@@ -38,3 +38,17 @@ data/processed/*
 
 # Simulation output
 output/
+
+# Model weights (downloaded separately, not version-controlled)
+*.pt
+*.pth
+*.onnx
+*.weights
+yolov8*.pt
+uvh26_weights/
+
+# Video / processed data
+data/raw/*.mp4
+data/raw/*.avi
+data/raw/*.mov
+data/processed/*.pkl
