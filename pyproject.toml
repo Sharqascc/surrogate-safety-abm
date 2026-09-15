@@ -63,6 +63,10 @@ ignore_missing_imports = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-markers --strict-config -ra --cov=surrogate_safety_abm --cov-report=term-missing"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: end-to-end tests that span multiple modules",
+]
 
 [tool.coverage.run]
 source = ["src/surrogate_safety_abm"]
