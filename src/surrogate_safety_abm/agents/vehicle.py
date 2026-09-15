@@ -60,6 +60,8 @@ class VehicleAgent(Agent):
     max_speed: float = 16.7  # ~60 km/h default
     max_accel: float = 2.5
     max_decel: float = 4.5
+    target_speed: float | None = None
+    critical_gap_s: float = 4.0
     _length_m: float = field(init=False, repr=False)
     _width_m: float = field(init=False, repr=False)
     _pcu: float = field(init=False, repr=False)
@@ -71,6 +73,11 @@ class VehicleAgent(Agent):
             raise ValueError("max_speed must be positive")
         if self.speed > self.max_speed:
             raise ValueError("initial speed exceeds max_speed")
+        if self.target_speed is None:
+            # Default: agents cruise at their initial sampled speed.
+            # Without this, cruise_speed would fall back to max_speed
+            # and agents would accelerate indefinitely when unconstrained.
+            self.target_speed = self.speed
         self._length_m = VEHICLE_LENGTH_M[self.vehicle_type]
         self._width_m = VEHICLE_WIDTH_M[self.vehicle_type]
         self._pcu = VEHICLE_PCU[self.vehicle_type]
@@ -89,6 +96,11 @@ class VehicleAgent(Agent):
     def pcu(self) -> float:
         """Return the Passenger Car Unit equivalent of this vehicle."""
         return self._pcu
+
+    @property
+    def cruise_speed(self) -> float:
+        """Speed the driver would travel at when unconstrained (m/s)."""
+        return self.target_speed if self.target_speed is not None else self.max_speed
 
     def step(self, dt: float) -> None:
         """Advance the vehicle by one time step at constant speed.

@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from math import cos, sin
 
 from surrogate_safety_abm.agents.base import Agent
+from surrogate_safety_abm.behaviour.base import BehaviourModel
 from surrogate_safety_abm.config.city_profiles import CityProfile
 from surrogate_safety_abm.environment.intersection import Intersection
 from surrogate_safety_abm.simulation.recorder import ConflictEvent, Recorder
@@ -101,6 +102,7 @@ class SimulationEngine:
     intersection: Intersection
     agents: list[Agent] = field(default_factory=list)
     config: SimulationConfig = field(default_factory=SimulationConfig)
+    behaviours: list[BehaviourModel] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         """Validate that agent identifiers are unique."""
@@ -109,6 +111,8 @@ class SimulationEngine:
             raise ValueError("agent_id values must be unique")
 
     def _step_agents(self, dt: float) -> None:
+        for behaviour in self.behaviours:
+            behaviour.apply(self.agents, self.intersection, dt)
         for agent in self.agents:
             agent.step(dt)
 

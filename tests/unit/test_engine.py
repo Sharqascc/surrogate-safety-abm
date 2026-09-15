@@ -209,3 +209,38 @@ class TestClosingSpeed:
         a = VehicleAgent("a", Vec2(0.0, 0.0), 10.0, 0.0)
         b = VehicleAgent("b", Vec2(10.0, 0.0), 10.0, 0.0)
         assert _closing_speed(a, b, gap=10.0) == pytest.approx(0.0)
+
+
+class TestEngineBehaviourIntegration:
+    """Engine applies behaviour models before integrating agents."""
+
+    def test_empty_behaviour_list_does_nothing(self) -> None:
+        a = VehicleAgent("a", Vec2(-10.0, 0.0), 10.0, 0.0)
+        engine = SimulationEngine(
+            city=SURAT,
+            intersection=_empty_intersection(),
+            agents=[a],
+            config=SimulationConfig(duration_s=0.5, time_step_s=0.1),
+            behaviours=[],
+        )
+        result = engine.run()
+        assert result.steps_completed == 5
+        assert a.speed == 10.0
+
+    def test_behaviour_stack_is_applied(self) -> None:
+        from surrogate_safety_abm.behaviour import EvasiveBrakingModel
+
+        # Two head-on agents -> evasive braking kicks in
+        a = VehicleAgent("a", Vec2(-3.0, 0.0), 10.0, 0.0)
+        b = VehicleAgent("b", Vec2(3.0, 0.0), 10.0, 3.14159265)
+        engine = SimulationEngine(
+            city=SURAT,
+            intersection=_empty_intersection(),
+            agents=[a, b],
+            config=SimulationConfig(duration_s=0.5, time_step_s=0.1),
+            behaviours=[EvasiveBrakingModel()],
+        )
+        engine.run()
+        # Behaviour should have reduced speeds below initial 10.0
+        assert a.speed < 10.0
+        assert b.speed < 10.0

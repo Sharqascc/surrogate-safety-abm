@@ -13,6 +13,10 @@ from surrogate_safety_abm.simulation.recorder import (
     ConflictEvent,
     Recorder,
 )
+from surrogate_safety_abm.simulation.scenario import (
+    generate_agents,
+    make_city_behaviours,
+)
 
 __all__ = [
     "DEFAULT_CONFLICT_RADIUS_M",
@@ -24,4 +28,6 @@ __all__ = [
     "SimulationConfig",
     "SimulationEngine",
     "SimulationResult",
+    "generate_agents",
+    "make_city_behaviours",
 ]
