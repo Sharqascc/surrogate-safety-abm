@@ -40,6 +40,9 @@ class SimulationConfig:
         ttc_threshold_s: TTC below which a conflict event is recorded.
         min_gap_m: Minimum gap (m). Closer pairs are collisions,
             not conflicts, and are excluded from SSM analysis.
+        intersection_zone_m: Half-side (m) of the square zone
+            around the intersection centre. Only pairs with both
+            agents inside are evaluated.
         seed: Optional RNG seed for reproducibility.
     """
 
@@ -49,6 +52,8 @@ class SimulationConfig:
     conflict_radius_m: float = DEFAULT_CONFLICT_RADIUS_M
     ttc_threshold_s: float = DEFAULT_TTC_THRESHOLD_S
     min_gap_m: float = DEFAULT_MIN_GAP_M
+    intersection_zone_m: float = 10.0
+    min_speed_mps: float = 1.4
     seed: int | None = None
 
     def __post_init__(self) -> None:
@@ -67,6 +72,10 @@ class SimulationConfig:
             raise ValueError("ttc_threshold_s must be positive")
         if self.min_gap_m < 0.0:
             raise ValueError("min_gap_m must be non-negative")
+        if self.min_speed_mps < 0.0:
+            raise ValueError("min_speed_mps must be non-negative")
+        if self.intersection_zone_m <= 0.0:
+            raise ValueError("intersection_zone_m must be positive")
 
 
 @dataclass
@@ -121,6 +130,17 @@ class SimulationEngine:
         for i in range(n):
             for j in range(i + 1, n):
                 a, b = self.agents[i], self.agents[j]
+                if (a.speed < self.config.min_speed_mps
+                        or b.speed < self.config.min_speed_mps):
+                    continue
+                cx = self.intersection.centre.x
+                cy = self.intersection.centre.y
+                zone = self.config.intersection_zone_m
+                if (abs(a.position.x - cx) > zone
+                        or abs(a.position.y - cy) > zone
+                        or abs(b.position.x - cx) > zone
+                        or abs(b.position.y - cy) > zone):
+                    continue
                 gap = a.position.distance_to(b.position)
                 if gap > self.config.conflict_radius_m:
                     continue
