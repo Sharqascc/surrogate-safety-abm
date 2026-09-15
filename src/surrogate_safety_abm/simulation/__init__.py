@@ -2,6 +2,7 @@
 
 from surrogate_safety_abm.simulation.engine import (
     DEFAULT_CONFLICT_RADIUS_M,
+    DEFAULT_MIN_GAP_M,
     DEFAULT_TTC_THRESHOLD_S,
     SimulationConfig,
     SimulationEngine,
@@ -15,6 +16,7 @@ from surrogate_safety_abm.simulation.recorder import (
 
 __all__ = [
     "DEFAULT_CONFLICT_RADIUS_M",
+    "DEFAULT_MIN_GAP_M",
     "DEFAULT_TTC_THRESHOLD_S",
     "AgentSnapshot",
     "ConflictEvent",

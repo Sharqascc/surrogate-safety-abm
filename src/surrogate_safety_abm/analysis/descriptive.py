@@ -36,11 +36,21 @@ def _percentile(sorted_values: list[float], q: float) -> float:
         raise ValueError("q must lie in [0, 1]")
     if len(sorted_values) == 1:
         return sorted_values[0]
+    # All-equal input: every percentile equals the same value. Guard
+    # against floating-point round-off that could push the result above
+    # the maximum (e.g. p85 > max by 1 ULP).
+    lo_v = sorted_values[0]
+    hi_v = sorted_values[-1]
+    if lo_v == hi_v:
+        return lo_v
     pos = q * (len(sorted_values) - 1)
     lo = int(pos)
     hi = min(lo + 1, len(sorted_values) - 1)
     frac = pos - lo
-    return sorted_values[lo] * (1.0 - frac) + sorted_values[hi] * frac
+    result = sorted_values[lo] * (1.0 - frac) + sorted_values[hi] * frac
+    # Clamp to [min, max] — the mathematical range of a percentile.
+    # Guards against denormal underflow (e.g. 5e-324 * 0.5 == 0.0).
+    return max(lo_v, min(result, hi_v))
 
 
 def summarise(values: list[float]) -> SSMSummary:

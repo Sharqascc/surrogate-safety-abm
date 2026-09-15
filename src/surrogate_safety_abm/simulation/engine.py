@@ -22,6 +22,10 @@ DEFAULT_CONFLICT_RADIUS_M: float = 15.0
 DEFAULT_TTC_THRESHOLD_S: float = 5.0
 """Default TTC threshold (seconds) below which a conflict is recorded."""
 
+DEFAULT_MIN_GAP_M: float = 2.0
+"""Minimum gap (metres). Pairs closer than this are collisions,
+not conflicts, and are excluded from SSM analysis."""
+
 
 @dataclass
 class SimulationConfig:
@@ -33,6 +37,8 @@ class SimulationConfig:
         warm_up_s: Warm-up period during which nothing is recorded.
         conflict_radius_m: Pairwise proximity threshold for detection.
         ttc_threshold_s: TTC below which a conflict event is recorded.
+        min_gap_m: Minimum gap (m). Closer pairs are collisions,
+            not conflicts, and are excluded from SSM analysis.
         seed: Optional RNG seed for reproducibility.
     """
 
@@ -41,6 +47,7 @@ class SimulationConfig:
     warm_up_s: float = 0.0
     conflict_radius_m: float = DEFAULT_CONFLICT_RADIUS_M
     ttc_threshold_s: float = DEFAULT_TTC_THRESHOLD_S
+    min_gap_m: float = DEFAULT_MIN_GAP_M
     seed: int | None = None
 
     def __post_init__(self) -> None:
@@ -57,6 +64,8 @@ class SimulationConfig:
             raise ValueError("conflict_radius_m must be positive")
         if self.ttc_threshold_s <= 0.0:
             raise ValueError("ttc_threshold_s must be positive")
+        if self.min_gap_m < 0.0:
+            raise ValueError("min_gap_m must be non-negative")
 
 
 @dataclass
@@ -110,6 +119,9 @@ class SimulationEngine:
                 a, b = self.agents[i], self.agents[j]
                 gap = a.position.distance_to(b.position)
                 if gap > self.config.conflict_radius_m:
+                    continue
+                if gap < self.config.min_gap_m:
+                    # Physically overlapping pair: collision, not conflict.
                     continue
                 rel_speed = _closing_speed(a, b, gap)
                 ttc = compute_ttc(gap=gap, relative_speed=rel_speed)

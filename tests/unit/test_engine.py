@@ -49,6 +49,13 @@ class TestSimulationConfig:
         with pytest.raises(ValueError, match="ttc_threshold_s"):
             SimulationConfig(ttc_threshold_s=0.0)
 
+    def test_min_gap_negative_rejected(self) -> None:
+        with pytest.raises(ValueError, match="min_gap_m"):
+            SimulationConfig(min_gap_m=-1.0)
+
+    def test_min_gap_default_is_two_meters(self) -> None:
+        assert SimulationConfig().min_gap_m == 2.0
+
 
 class TestSimulationEngine:
     """Functional tests for SimulationEngine."""
@@ -110,19 +117,31 @@ class TestSimulationEngine:
         result = engine.run()
         assert len(result.recorder.snapshots) == 10
 
-    def test_zero_gap_pair_records_event(self) -> None:
+    def test_overlapping_pair_is_collision_not_conflict(self) -> None:
+        """Agents within min_gap_m are excluded (collisions, not conflicts)."""
+        a = VehicleAgent("a", ORIGIN, 5.0, 0.0)
+        b = VehicleAgent("b", Vec2(1.0, 0.0), 5.0, 3.14159265)
+        engine = SimulationEngine(
+            city=SURAT,
+            intersection=_empty_intersection(),
+            agents=[a, b],
+            config=SimulationConfig(duration_s=0.5, time_step_s=0.1, min_gap_m=2.0),
+        )
+        result = engine.run()
+        assert result.recorder.conflicts == []
+
+    def test_zero_gap_still_skipped_by_min_gap(self) -> None:
+        """Zero-distance pairs are collisions, not conflicts."""
         a = VehicleAgent("a", ORIGIN, 5.0, 0.0, VehicleType.CAR)
         b = VehicleAgent("b", ORIGIN, 5.0, 0.0, VehicleType.CAR)
         engine = SimulationEngine(
             city=SURAT,
             intersection=_empty_intersection(),
             agents=[a, b],
-            config=SimulationConfig(duration_s=0.5, time_step_s=0.1),
+            config=SimulationConfig(duration_s=0.5, time_step_s=0.1, min_gap_m=2.0),
         )
         result = engine.run()
-        # Both agents overlap -> conflict with TTC=0 recorded every step
-        assert len(result.recorder.conflicts) >= 1
-        assert all(ev.ttc_s == 0.0 for ev in result.recorder.conflicts)
+        assert result.recorder.conflicts == []
 
     def test_high_ttc_threshold_no_events(self) -> None:
         a = VehicleAgent("a", Vec2(-14.0, 0.0), 1.0, 0.0)
@@ -161,3 +180,32 @@ class TestSimulationEngine:
         result = engine.run()
         assert result.city is SURAT
         assert result.intersection is ic
+
+
+class TestClosingSpeed:
+    """Unit tests for the _closing_speed helper."""
+
+    def test_zero_gap_returns_zero(self) -> None:
+        """Guard branch: gap <= 1e-9 returns 0.0 immediately."""
+        from surrogate_safety_abm.simulation.engine import _closing_speed
+
+        a = VehicleAgent("a", ORIGIN, 10.0, 0.0)
+        b = VehicleAgent("b", ORIGIN, 10.0, 3.14159265)
+        assert _closing_speed(a, b, gap=0.0) == 0.0
+        assert _closing_speed(a, b, gap=1e-10) == 0.0
+
+    def test_head_on_approach_positive(self) -> None:
+        """Head-on closure gives a positive closing speed."""
+        from surrogate_safety_abm.simulation.engine import _closing_speed
+
+        a = VehicleAgent("a", Vec2(0.0, 0.0), 10.0, 0.0)
+        b = VehicleAgent("b", Vec2(10.0, 0.0), 10.0, 3.14159265)
+        assert _closing_speed(a, b, gap=10.0) == pytest.approx(20.0)
+
+    def test_same_direction_zero_closing(self) -> None:
+        """Same-direction equal-speed pair has zero closing speed."""
+        from surrogate_safety_abm.simulation.engine import _closing_speed
+
+        a = VehicleAgent("a", Vec2(0.0, 0.0), 10.0, 0.0)
+        b = VehicleAgent("b", Vec2(10.0, 0.0), 10.0, 0.0)
+        assert _closing_speed(a, b, gap=10.0) == pytest.approx(0.0)
