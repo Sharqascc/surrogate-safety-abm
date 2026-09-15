@@ -1,5 +1,9 @@
 """Shared pytest configuration and Hypothesis profiles."""
 
+import matplotlib
+
+matplotlib.use("Agg")  # non-interactive backend for CI / Colab
+
 from hypothesis import Verbosity, settings
 
 settings.register_profile(
