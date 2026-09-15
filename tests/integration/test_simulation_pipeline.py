@@ -77,3 +77,50 @@ class TestIntersectionSSMPipeline:
         total_pcu = sum(v.pcu for v in vehicles)
         # 0.5 + 0.5 + 1.0 + 3.0 = 5.0
         assert total_pcu == pytest.approx(5.0)
+
+
+@pytest.mark.integration
+class TestFullEngineRun:
+    """End-to-end engine run on a four-legged intersection."""
+
+    def test_full_simulation_produces_events(self, tmp_path) -> None:
+        from surrogate_safety_abm.config.city_profiles import SURAT
+        from surrogate_safety_abm.simulation import (
+            SimulationConfig,
+            SimulationEngine,
+        )
+
+        agents = [
+            VehicleAgent("v1", Vec2(-40.0, 0.0), 12.0, 0.0, VehicleType.CAR),
+            VehicleAgent(
+                "v2",
+                Vec2(0.0, -40.0),
+                10.0,
+                1.5707963,
+                VehicleType.TWO_WHEELER,
+            ),
+            VehicleAgent(
+                "v3",
+                Vec2(40.0, 0.0),
+                8.0,
+                3.14159265,
+                VehicleType.THREE_WHEELER,
+            ),
+            VehicleAgent("v4", Vec2(0.0, 40.0), 9.0, -1.5707963, VehicleType.CAR),
+        ]
+        intersection = Intersection.four_legged(intersection_id="demo")
+        engine = SimulationEngine(
+            city=SURAT,
+            intersection=intersection,
+            agents=agents,
+            config=SimulationConfig(duration_s=20.0, time_step_s=0.2, seed=42),
+        )
+        result = engine.run()
+
+        assert result.steps_completed == 100
+        for v in agents:
+            assert len(result.recorder.trajectory(v.agent_id)) == 100
+        assert len(result.recorder.conflicts) > 0
+        for ev in result.recorder.conflicts:
+            assert ev.ttc_s >= 0.0
+            assert ev.distance_m >= 0.0

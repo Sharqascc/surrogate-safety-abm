@@ -20,6 +20,9 @@ dependencies = [
     "networkx>=3.2",
 ]
 
+[project.scripts]
+surrogate-safety-sim = "surrogate_safety_abm.cli:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0",

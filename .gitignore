@@ -35,3 +35,6 @@ data/processed/*
 .vscode/
 .idea/
 .DS_Store
+
+# Simulation output
+output/
