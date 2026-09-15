@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Surrogate Safety ABM"
+authors:
+  - family-names: "Sharqascc"
+abstract: >-
+  Agent-based modelling framework for analysing surrogate safety measures
+  at unsignalized urban intersections in India.
+version: 0.1.0
+date-released: "2026-04-17"
+license: MIT
+repository-code: "https://github.com/Sharqascc/surrogate-safety-abm"
