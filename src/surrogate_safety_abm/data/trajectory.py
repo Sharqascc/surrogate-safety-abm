@@ -37,7 +37,7 @@ def smooth_positions(
     window: int = 7,
     polyorder: int = 2,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Apply a Savitzky–Golay filter to a sequence of positions."""
+    """Apply a Savitzky-Golay filter to a sequence of positions."""
     if len(x) < window:
         return x, y
     return (

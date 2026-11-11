@@ -41,8 +41,8 @@ __all__ = [
     "VideoMetadata",
     "build_trajectory",
     "compute_kinematics",
-    "smooth_positions",
     "compute_pairwise_conflicts",
+    "smooth_positions",
     "to_observed_tracks",
     "write_trajectories_csv",
 ]

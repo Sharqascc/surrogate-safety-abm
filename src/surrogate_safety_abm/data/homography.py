@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence
+from typing import cast
 
 import cv2
 import numpy as np
@@ -20,16 +21,16 @@ class Homography:
         cls,
         pixel_points: Sequence[tuple[float, float]],
         world_points: Sequence[tuple[float, float]],
-    ) -> "Homography":
+    ) -> Homography:
         """Build a homography from 4+ pixel↔world correspondence pairs."""
         if len(pixel_points) != len(world_points) or len(pixel_points) < 4:
             raise ValueError("need at least 4 correspondence pairs")
         src = np.array(pixel_points, dtype=np.float64)
         dst = np.array(world_points, dtype=np.float64)
-        H, _ = cv2.findHomography(src, dst, method=0)
-        if H is None:
+        h_mat, _ = cv2.findHomography(src, dst, method=0)
+        if h_mat is None:
             raise RuntimeError("homography estimation failed")
-        return cls(matrix=H)
+        return cls(matrix=h_mat)
 
     def pixel_to_world(self, x_px: float, y_px: float) -> tuple[float, float]:
         """Project one pixel coordinate to world (metres)."""
@@ -41,8 +42,6 @@ class Homography:
     def pixel_to_world_array(self, points: np.ndarray) -> np.ndarray:
         """Vectorized pixel-to-world conversion."""
         n = points.shape[0]
-        homogeneous = np.concatenate(
-            [points, np.ones((n, 1))], axis=1
-        )
+        homogeneous = np.concatenate([points, np.ones((n, 1))], axis=1)
         transformed = homogeneous @ self.matrix.T
-        return transformed[:, :2] / transformed[:, 2:3]
+        return cast(np.ndarray, transformed[:, :2] / transformed[:, 2:3])

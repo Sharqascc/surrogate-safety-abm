@@ -16,7 +16,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
-from scipy.stats import genpareto  # type: ignore[import-untyped]
+from scipy.stats import genpareto
 
 
 @dataclass(frozen=True, slots=True)

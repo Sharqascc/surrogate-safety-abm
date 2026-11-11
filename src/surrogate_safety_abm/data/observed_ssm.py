@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 
@@ -23,7 +24,7 @@ class ObservedTrack:
     heading_rad: np.ndarray
 
 
-def to_observed_tracks(world_trajectories: list) -> list[ObservedTrack]:
+def to_observed_tracks(world_trajectories: list[Any]) -> list[ObservedTrack]:
     """Convert ProcessedTrajectory objects to ObservedTrack."""
     out: list[ObservedTrack] = []
     for t in world_trajectories:
@@ -42,7 +43,11 @@ def to_observed_tracks(world_trajectories: list) -> list[ObservedTrack]:
 
 
 def _inside_zone(
-    x: float, y: float, cx: float, cy: float, half_m: float,
+    x: float,
+    y: float,
+    cx: float,
+    cy: float,
+    half_m: float,
 ) -> bool:
     """True if (x, y) is within the intersection zone box."""
     return abs(x - cx) <= half_m and abs(y - cy) <= half_m

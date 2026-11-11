@@ -62,8 +62,8 @@ class Detection:
     """A single detection in one frame."""
 
     class_id: int
-    class_name: str          # fine-grained UVH-26 class
-    analytical_class: str    # PCU-based analytical group
+    class_name: str  # fine-grained UVH-26 class
+    analytical_class: str  # PCU-based analytical group
     confidence: float
     x1: float
     y1: float
@@ -77,10 +77,12 @@ class Detection:
 
     @property
     def width(self) -> float:
+        """Width of the bounding box in pixels."""
         return self.x2 - self.x1
 
     @property
     def height(self) -> float:
+        """Height of the bounding box in pixels."""
         return self.y2 - self.y1
 
     @property
@@ -106,6 +108,14 @@ class Detector:
         imgsz: int = 1280,
         tracker_yaml: str = "bytetrack.yaml",
     ) -> None:
+        """Load the UVH-26 detector and configure tracking.
+
+        Args:
+            model_path: Path to the UVH-26 YOLO weights file.
+            confidence_threshold: Minimum detection confidence to keep.
+            imgsz: Inference resolution in pixels.
+            tracker_yaml: ByteTrack configuration filename.
+        """
         from ultralytics import YOLO  # lazy import
 
         model_path = Path(model_path)
@@ -120,7 +130,10 @@ class Detector:
         self.tracker_yaml = tracker_yaml
 
     def _to_detection(
-        self, cls_id: int, conf: float, xyxy: np.ndarray,
+        self,
+        cls_id: int,
+        conf: float,
+        xyxy: np.ndarray,
     ) -> Detection | None:
         cls_name = UVH26_CLASSES.get(cls_id)
         if cls_name is None:
@@ -130,15 +143,15 @@ class Detector:
             class_name=cls_name,
             analytical_class=UVH26_TO_ANALYTICAL[cls_name],
             confidence=conf,
-            x1=float(xyxy[0]), y1=float(xyxy[1]),
-            x2=float(xyxy[2]), y2=float(xyxy[3]),
+            x1=float(xyxy[0]),
+            y1=float(xyxy[1]),
+            x2=float(xyxy[2]),
+            y2=float(xyxy[3]),
         )
 
     def detect(self, frame: np.ndarray) -> list[Detection]:
         """Return UVH-26 detections for a single frame."""
-        results = self.model.predict(
-            frame, conf=self.conf, imgsz=self.imgsz, verbose=False
-        )[0]
+        results = self.model.predict(frame, conf=self.conf, imgsz=self.imgsz, verbose=False)[0]
         out: list[Detection] = []
         if results.boxes is None:
             return out
@@ -172,7 +185,9 @@ class Detector:
 
         for k in range(len(ids)):
             det = self._to_detection(
-                int(cls_ids[k]), float(confs[k]), xyxy_all[k],
+                int(cls_ids[k]),
+                float(confs[k]),
+                xyxy_all[k],
             )
             if det is not None:
                 out.append((int(ids[k]), det))
