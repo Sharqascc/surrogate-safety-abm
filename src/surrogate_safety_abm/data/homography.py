@@ -6,6 +6,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 import cv2
+from typing import cast
+
 import numpy as np
 
 
@@ -43,4 +45,4 @@ class Homography:
         n = points.shape[0]
         homogeneous = np.concatenate([points, np.ones((n, 1))], axis=1)
         transformed = homogeneous @ self.matrix.T
-        return transformed[:, :2] / transformed[:, 2:3]
+        return cast(np.ndarray, transformed[:, :2] / transformed[:, 2:3])

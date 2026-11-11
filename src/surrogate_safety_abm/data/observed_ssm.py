@@ -5,6 +5,8 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
+from typing import Any
+
 import numpy as np
 
 from surrogate_safety_abm.simulation.recorder import ConflictEvent
@@ -23,7 +25,7 @@ class ObservedTrack:
     heading_rad: np.ndarray
 
 
-def to_observed_tracks(world_trajectories: list) -> list[ObservedTrack]:
+def to_observed_tracks(world_trajectories: list[Any]) -> list[ObservedTrack]:
     """Convert ProcessedTrajectory objects to ObservedTrack."""
     out: list[ObservedTrack] = []
     for t in world_trajectories:
