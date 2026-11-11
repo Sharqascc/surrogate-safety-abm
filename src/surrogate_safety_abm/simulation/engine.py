@@ -130,16 +130,17 @@ class SimulationEngine:
         for i in range(n):
             for j in range(i + 1, n):
                 a, b = self.agents[i], self.agents[j]
-                if (a.speed < self.config.min_speed_mps
-                        or b.speed < self.config.min_speed_mps):
+                if a.speed < self.config.min_speed_mps or b.speed < self.config.min_speed_mps:
                     continue
                 cx = self.intersection.centre.x
                 cy = self.intersection.centre.y
                 zone = self.config.intersection_zone_m
-                if (abs(a.position.x - cx) > zone
-                        or abs(a.position.y - cy) > zone
-                        or abs(b.position.x - cx) > zone
-                        or abs(b.position.y - cy) > zone):
+                if (
+                    abs(a.position.x - cx) > zone
+                    or abs(a.position.y - cy) > zone
+                    or abs(b.position.x - cx) > zone
+                    or abs(b.position.y - cy) > zone
+                ):
                     continue
                 gap = a.position.distance_to(b.position)
                 if gap > self.config.conflict_radius_m:

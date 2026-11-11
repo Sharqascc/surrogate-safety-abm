@@ -3,11 +3,8 @@
 from __future__ import annotations
 
 import csv
-from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-
-import numpy as np
 
 from surrogate_safety_abm.data.detection import Detection, Detector
 from surrogate_safety_abm.data.homography import Homography
@@ -78,6 +75,14 @@ class Extractor:
         homography: Homography | None = None,
         stride: int = 1,
     ) -> None:
+        """Wire together a loader, detector, optional homography, and stride.
+
+        Args:
+            loader: Source of frames.
+            detector: Detector wrapper producing per-frame detections.
+            homography: Optional pixel-to-metre transform.
+            stride: Process every Nth frame (1 = all frames).
+        """
         self.loader = loader
         self.detector = detector
         self.homography = homography
@@ -123,14 +128,13 @@ class Extractor:
                     wx, wy = self.homography.pixel_to_world(px, py)
                 except ValueError:
                     continue
-                points.append(
-                    TrajectoryPoint(
-                        frame=t.frames[0], time_s=t_s, x_m=wx, y_m=wy
-                    )
-                )
+                points.append(TrajectoryPoint(frame=t.frames[0], time_s=t_s, x_m=wx, y_m=wy))
             proc = build_trajectory(
-                t.track_id, t.class_name, points,
-                min_length=min_length, smooth_window=smooth_window,
+                t.track_id,
+                t.class_name,
+                points,
+                min_length=min_length,
+                smooth_window=smooth_window,
             )
             if proc is not None:
                 out.append(proc)
@@ -146,13 +150,19 @@ def write_trajectories_csv(
     with out_path.open("w", newline="") as f:
         w = csv.writer(f)
         w.writerow(
-            ["track_id", "class", "frame_idx", "time_s",
-             "x_m", "y_m", "speed_mps", "heading_rad"]
+            ["track_id", "class", "frame_idx", "time_s", "x_m", "y_m", "speed_mps", "heading_rad"]
         )
         for t in trajectories:
             for i in range(len(t.times_s)):
-                w.writerow([
-                    t.track_id, t.class_name, i, f"{t.times_s[i]:.3f}",
-                    f"{t.x_m[i]:.4f}", f"{t.y_m[i]:.4f}",
-                    f"{t.speed_mps[i]:.4f}", f"{t.heading_rad[i]:.4f}",
-                ])
+                w.writerow(
+                    [
+                        t.track_id,
+                        t.class_name,
+                        i,
+                        f"{t.times_s[i]:.3f}",
+                        f"{t.x_m[i]:.4f}",
+                        f"{t.y_m[i]:.4f}",
+                        f"{t.speed_mps[i]:.4f}",
+                        f"{t.heading_rad[i]:.4f}",
+                    ]
+                )

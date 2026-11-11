@@ -42,7 +42,11 @@ def to_observed_tracks(world_trajectories: list) -> list[ObservedTrack]:
 
 
 def _inside_zone(
-    x: float, y: float, cx: float, cy: float, half_m: float,
+    x: float,
+    y: float,
+    cx: float,
+    cy: float,
+    half_m: float,
 ) -> bool:
     """True if (x, y) is within the intersection zone box."""
     return abs(x - cx) <= half_m and abs(y - cy) <= half_m

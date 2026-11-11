@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator
 
 import cv2
 import numpy as np
@@ -30,6 +30,14 @@ class VideoLoader:
     """
 
     def __init__(self, path: Path | str) -> None:
+        """Open the video file and read its metadata.
+
+        Args:
+            path: Path to the video file (mp4 / avi).
+
+        Raises:
+            FileNotFoundError: If the path does not exist.
+        """
         self.path = Path(path)
         if not self.path.exists():
             raise FileNotFoundError(f"video not found: {self.path}")
