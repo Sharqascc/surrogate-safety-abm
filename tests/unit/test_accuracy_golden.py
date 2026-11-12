@@ -35,6 +35,7 @@ def test_compare_matches_golden_fixture() -> None:
         "pearson_p",
         "ks_statistic",
         "ks_p",
+        "wasserstein",
         "mean_observed",
         "mean_simulated",
         "mean_diff",

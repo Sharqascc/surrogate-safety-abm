@@ -8,6 +8,7 @@ from surrogate_safety_abm.analysis.accuracy import (
     mean_diff_ci95,
     pearson_r,
     rmse,
+    wasserstein_distance,
 )
 from surrogate_safety_abm.analysis.descriptive import (
     SSMSummary,
@@ -58,4 +59,5 @@ __all__ = [
     "summarise",
     "summarise_drac",
     "summarise_ttc",
+    "wasserstein_distance",
 ]
