@@ -1,5 +1,14 @@
 """Statistical analysis and visualisation of conflict-event data."""
 
+from surrogate_safety_abm.analysis.accuracy import (
+    AccuracyReport,
+    compare,
+    ks_test,
+    mae,
+    mean_diff_ci95,
+    pearson_r,
+    rmse,
+)
 from surrogate_safety_abm.analysis.descriptive import (
     SSMSummary,
     summarise,
@@ -30,14 +39,21 @@ __all__ = [
     "DRAC_CRITICAL_THRESHOLD_MS2",
     "TTC_SERIOUS_THRESHOLD_S",
     "TTC_SLIGHT_THRESHOLD_S",
+    "AccuracyReport",
     "ConflictEpisode",
     "GPDFit",
     "SSMSummary",
     "Severity",
     "classify_severity",
     "collapse_episodes",
+    "compare",
     "episode_severity_counts",
     "fit_ttc_gpd",
+    "ks_test",
+    "mae",
+    "mean_diff_ci95",
+    "pearson_r",
+    "rmse",
     "severity_counts",
     "summarise",
     "summarise_drac",
