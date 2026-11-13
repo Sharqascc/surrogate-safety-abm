@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    # Nightly at 03:00 UTC for mutation testing
+    - cron: "0 3 * * *"
   workflow_dispatch:
 
 jobs:
@@ -37,3 +40,60 @@ jobs:
 
       - name: Pytest with coverage
         run: pytest --cov=surrogate_safety_abm --cov-report=term-missing -q
+
+  static-gates:
+    name: Static gates (dead code, complexity, security)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install static analysis tools
+        run: pip install vulture xenon bandit
+
+      - name: Vulture (dead code, min-confidence 80)
+        run: vulture src/surrogate_safety_abm --min-confidence 80
+
+      - name: Xenon (cyclomatic complexity)
+        run: xenon src/surrogate_safety_abm --max-absolute C --max-modules C --max-average B
+
+      - name: Bandit (security, medium+ severity)
+        run: bandit -r src/surrogate_safety_abm -ll -q
+
+  mutation-nightly:
+    name: Mutation testing (nightly)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install package + dev deps + mutmut
+        run: |
+          pip install -e ".[dev]"
+          pip install mutmut
+
+      - name: Run mutation testing
+        run: mutmut run --CI || true
+
+      - name: Report mutation results
+        if: always()
+        run: |
+          echo "## Mutation testing survivors" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "A surviving mutant = a line of code whose behavior is not"
+          echo "verified by any test. AI-written tests frequently pass"
+          echo "every test while asserting almost nothing." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "```" >> "$GITHUB_STEP_SUMMARY"
+          mutmut results 2>&1 || echo "(mutmut results unavailable)"
+          echo "```" >> "$GITHUB_STEP_SUMMARY"
