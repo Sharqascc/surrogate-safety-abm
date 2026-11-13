@@ -60,6 +60,12 @@ def generate_agents(
             base.x + offset * math.cos(heading),
             base.y + offset * math.sin(heading),
         )
+        # The sampled speed can exceed VehicleAgent's default max_speed
+        # of 16.7 m/s (~60 km/h): sample_speed_mps clips to 1.1 * v85,
+        # and Ahmedabad's v85 = 55 km/h gives an upper clip of 16.81 m/s.
+        # Raise max_speed to at least the sampled speed so the agent can
+        # carry its profile-calibrated cruise speed without violating
+        # __post_init__'s "initial speed <= max_speed" invariant.
         agents.append(
             VehicleAgent(
                 agent_id=f"v{idx + 1}",
@@ -67,6 +73,7 @@ def generate_agents(
                 speed=speed,
                 heading=heading,
                 vehicle_type=vehicle_type,
+                max_speed=max(speed, 16.7),
                 target_speed=speed,
                 critical_gap_s=gap,
             )
