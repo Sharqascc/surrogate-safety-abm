@@ -13,6 +13,7 @@ from surrogate_safety_abm.analysis import (
     mean_diff_ci95,
     pearson_r,
     rmse,
+    wasserstein_distance,
 )
 
 _finite = st.floats(min_value=0.0, max_value=1_000.0, allow_nan=False, allow_infinity=False)
@@ -118,3 +119,32 @@ def test_compare_ci_contains_diff(pairs: list[tuple[float, float]]) -> None:
     rep = compare(obs, sim)
     assert rep.mean_diff_ci95_low <= rep.mean_diff + 1e-9
     assert rep.mean_diff <= rep.mean_diff_ci95_high + 1e-9
+
+
+@given(pairs=_pairs)
+def test_wasserstein_non_negative(pairs: list[tuple[float, float]]) -> None:
+    obs = [p[0] for p in pairs]
+    sim = [p[1] for p in pairs]
+    assert wasserstein_distance(obs, sim) >= 0.0
+
+
+@given(pairs=_pairs)
+def test_wasserstein_zero_for_identical(pairs: list[tuple[float, float]]) -> None:
+    obs = [p[0] for p in pairs]
+    assert wasserstein_distance(obs, obs) == 0.0
+
+
+@given(pairs=_pairs)
+def test_wasserstein_symmetric(pairs: list[tuple[float, float]]) -> None:
+    obs = [p[0] for p in pairs]
+    sim = [p[1] for p in pairs]
+    assert wasserstein_distance(obs, sim) == pytest.approx(wasserstein_distance(sim, obs))
+
+
+@given(pairs=_pairs)
+def test_compare_reports_wasserstein(pairs: list[tuple[float, float]]) -> None:
+    obs = [p[0] for p in pairs]
+    sim = [p[1] for p in pairs]
+    rep = compare(obs, sim)
+    assert rep.wasserstein >= 0.0
+    assert math.isfinite(rep.wasserstein)

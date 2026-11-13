@@ -32,6 +32,7 @@
     "pearson_p": 0.03821539022622877,
     "ks_statistic": 0.9,
     "ks_p": 0.00021650176448938054,
+    "wasserstein": 0.1394,
     "mean_observed": 1.4963,
     "mean_simulated": 1.6357,
     "mean_diff": 0.13939999999999997,

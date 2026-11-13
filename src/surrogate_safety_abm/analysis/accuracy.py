@@ -1,9 +1,10 @@
 """Accuracy metrics for comparing observed and simulated SSM values.
 
 Provides the statistics Table 2 of the paper needs: RMSE, MAE, Pearson
-correlation, Kolmogorov-Smirnov test, and a 95% CI on the difference of
-means. Paired statistics (RMSE, MAE, Pearson) require equal-length
-lists; unpaired statistics (KS, mean-diff CI) work on any two samples.
+correlation, Kolmogorov-Smirnov test, Wasserstein distance, and a 95% CI
+on the difference of means. Paired statistics (RMSE, MAE, Pearson)
+require equal-length lists; unpaired statistics (KS, Wasserstein,
+mean-diff CI) work on any two samples.
 """
 
 from __future__ import annotations
@@ -26,6 +27,7 @@ class AccuracyReport:
     pearson_p: float
     ks_statistic: float
     ks_p: float
+    wasserstein: float
     mean_observed: float
     mean_simulated: float
     mean_diff: float
@@ -132,6 +134,25 @@ def ks_test(observed: list[float], simulated: list[float]) -> tuple[float, float
     return float(result.statistic), float(result.pvalue)
 
 
+def wasserstein_distance(observed: list[float], simulated: list[float]) -> float:
+    """Wasserstein-1 (earth mover's) distance between two samples.
+
+    Measures how far one empirical distribution must be moved to match
+    the other. Unlike KS, which only reports the maximum CDF gap,
+    Wasserstein integrates the gap over the full support and is measured
+    in the same units as the input (seconds, for TTC).
+
+    Args:
+        observed: Observed sample.
+        simulated: Simulated sample.
+
+    Returns:
+        Non-negative Wasserstein distance in the input's units.
+    """
+    obs, sim = _check_inputs(observed, simulated)
+    return float(stats.wasserstein_distance(obs, sim))
+
+
 def mean_diff_ci95(observed: list[float], simulated: list[float]) -> tuple[float, float, float]:
     """Difference of means with 95% Welch confidence interval.
 
@@ -157,7 +178,18 @@ def mean_diff_ci95(observed: list[float], simulated: list[float]) -> tuple[float
         return diff, diff, diff
     df_num = (v1 / n1 + v2 / n2) ** 2
     df_den = (v1 / n1) ** 2 / (n1 - 1) + (v2 / n2) ** 2 / (n2 - 1)
+    # Underflow guard: if variances are so small that df_num and df_den
+    # both round to zero in float64, the Welch df is not representable.
+    # Use df=1 (the worst-case small-sample t) as a conservative fallback.
+    # The interval is wider than the exact one, never narrower, and never
+    # raises or returns NaN.
+    if df_den == 0.0 or not np.isfinite(df_den):
+        t_crit = float(stats.t.ppf(0.975, 1.0))
+        return diff, diff - t_crit * se, diff + t_crit * se
     df = df_num / df_den
+    if not np.isfinite(df) or df <= 0.0:
+        t_crit = float(stats.t.ppf(0.975, 1.0))
+        return diff, diff - t_crit * se, diff + t_crit * se
     t_crit = float(stats.t.ppf(0.975, df))
     return diff, diff - t_crit * se, diff + t_crit * se
 
@@ -179,6 +211,7 @@ def compare(observed: list[float], simulated: list[float]) -> AccuracyReport:
     obs, sim = _check_inputs(observed, simulated)
     diff, lo, hi = mean_diff_ci95(observed, simulated)
     ks_stat, ks_p = ks_test(observed, simulated)
+    wass = wasserstein_distance(observed, simulated)
     if len(obs) == len(sim):
         rmse_val = rmse(observed, simulated)
         mae_val = mae(observed, simulated)
@@ -197,6 +230,7 @@ def compare(observed: list[float], simulated: list[float]) -> AccuracyReport:
         pearson_p=r_p,
         ks_statistic=ks_stat,
         ks_p=ks_p,
+        wasserstein=wass,
         mean_observed=float(np.mean(obs)),
         mean_simulated=float(np.mean(sim)),
         mean_diff=diff,

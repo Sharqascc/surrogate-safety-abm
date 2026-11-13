@@ -14,6 +14,7 @@ from surrogate_safety_abm.analysis.accuracy import (
     mean_diff_ci95,
     pearson_r,
     rmse,
+    wasserstein_distance,
 )
 
 
@@ -175,3 +176,32 @@ class TestCompare:
         assert rep.mae == 0.0
         assert rep.pearson_r == pytest.approx(1.0)
         assert rep.mean_diff == 0.0
+
+
+class TestWasserstein:
+    """wasserstein_distance() earth-mover distance."""
+
+    def test_identical_samples_zero(self) -> None:
+        xs = [1.0, 2.0, 3.0, 4.0, 5.0]
+        assert wasserstein_distance(xs, xs) == pytest.approx(0.0)
+
+    def test_constant_offset_equals_offset(self) -> None:
+        # shifting every value by delta gives exactly delta
+        assert wasserstein_distance([0.0, 0.0, 0.0], [2.0, 2.0, 2.0]) == pytest.approx(2.0)
+
+    def test_non_negative(self) -> None:
+        assert wasserstein_distance([1.0, 2.0], [3.0, 4.0]) >= 0.0
+
+    def test_symmetric(self) -> None:
+        a = [1.0, 2.0, 3.0, 4.0]
+        b = [2.0, 4.0, 6.0, 8.0]
+        assert wasserstein_distance(a, b) == pytest.approx(wasserstein_distance(b, a))
+
+    def test_empty_raises(self) -> None:
+        with pytest.raises(ValueError, match="non-empty"):
+            wasserstein_distance([], [1.0])
+
+    def test_unequal_lengths_ok(self) -> None:
+        # distributional metric works on any two samples
+        d = wasserstein_distance([1.0, 2.0, 3.0], [2.0, 3.0])
+        assert d >= 0.0
