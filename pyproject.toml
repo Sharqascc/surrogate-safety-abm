@@ -21,8 +21,7 @@ dependencies = [
 ]
 
 [project.scripts]
-surrogate-safety-sim = "surrogate_safety_abm.cli:main"
-surrogate-safety-metrics = "surrogate_safety_abm.metrics_cli:main"
+surrogate-safety = "surrogate_safety_abm.main:main"
 
 [project.optional-dependencies]
 dev = [

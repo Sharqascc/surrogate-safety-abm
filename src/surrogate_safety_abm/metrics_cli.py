@@ -1,10 +1,9 @@
 """Command-line tool for TTC/PET/DRAC accuracy metrics.
 
-Separate entry point from `surrogate-safety-sim`, per the design review:
-the simulator CLI and its tests stay untouched, and this tool has no
-mode flags mixed in with simulation flags. Folding both into a single
-`surrogate-safety-sim simulate|metrics` subcommand structure is a
-follow-up refactor after the paper ships.
+Invoked via `surrogate-safety metrics` (the top-level dispatcher in
+`main.py`); the module is importable independently for library use.
+The simulator CLI (`cli.py`, exposed as `surrogate-safety simulate`)
+stays a separate module so neither tool's flags mix with the other's.
 
 Serves RESUME_HERE.md priority 1: accuracy metrics for Table 2.
 
