@@ -8,9 +8,13 @@ Vadodara, Surat, and Ahmedabad.
 
 - Heterogeneous traffic agents (2W, 3W, cars, HGV, pedestrians)
 - Established SSMs: PET, TTC, DRAC
-- Novel indicator: Anticipated Buffer Time (ABT)
 - City-specific calibration profiles
 - Publication-ready statistical outputs
+
+## Roadmap
+
+- Anticipated Buffer Time (ABT) -- published indicator
+  [Dutta et al., 2024], implementation in progress
 
 ## Install
 
