@@ -1,4 +1,4 @@
-"""Tests for the surrogate-safety-metrics CLI."""
+"""Tests for the metrics subcommand of surrogate-safety."""
 
 from __future__ import annotations
 

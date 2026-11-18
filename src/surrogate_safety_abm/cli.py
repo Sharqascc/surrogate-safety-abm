@@ -1,4 +1,9 @@
-"""Command-line entry point for running a simulation."""
+"""Simulation subcommand of surrogate-safety.
+
+Invoked via ``surrogate-safety simulate``. Not a console entry point on
+its own; the dispatcher in ``surrogate_safety_abm.main`` handles
+dependency bootstrap before calling ``main()``.
+"""
 
 from __future__ import annotations
 
@@ -50,7 +55,10 @@ def _resolve_behaviours(kind: str) -> list[BehaviourModel]:
 
 def main(argv: list[str] | None = None) -> int:
     """Run the simulation and write conflict events to CSV."""
-    parser = argparse.ArgumentParser(description="Run the surrogate-safety-ABM simulation.")
+    parser = argparse.ArgumentParser(
+        prog="surrogate-safety simulate",
+        description="Run the surrogate-safety-ABM simulation.",
+    )
     parser.add_argument("--city", choices=sorted(CITY_PROFILES.keys()), default="surat")
     parser.add_argument(
         "--vehicle-count",
@@ -157,7 +165,3 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  Snapshots:       {len(result.recorder.snapshots)}")
     print(f"  Output:          {args.out}")
     return 0
-
-
-if __name__ == "__main__":  # pragma: no cover
-    raise SystemExit(main())
