@@ -7,6 +7,6 @@ abstract: >-
   Agent-based modelling framework for analysing surrogate safety measures
   at unsignalized urban intersections in India.
 version: 0.1.0
-date-released: "2026-04-17"
+date-released: "2026-09-15"
 license: MIT
 repository-code: "https://github.com/Sharqascc/surrogate-safety-abm"
