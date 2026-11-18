@@ -12,7 +12,7 @@ from surrogate_safety_abm.behaviour import EvasiveBrakingModel
 
 
 def _run(monkeypatch, argv: list[str]) -> int:
-    monkeypatch.setattr(sys, "argv", ["surrogate-safety-sim", *argv])
+    monkeypatch.setattr(sys, "argv", ["surrogate-safety", "simulate", *argv])
     return cli.main(argv)
 
 

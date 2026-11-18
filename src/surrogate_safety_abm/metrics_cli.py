@@ -1,4 +1,4 @@
-"""Command-line tool for TTC/PET/DRAC accuracy metrics.
+"""Metrics subcommand of surrogate-safety.
 
 Invoked via `surrogate-safety metrics` (the top-level dispatcher in
 `main.py`); the module is importable independently for library use.
@@ -9,7 +9,7 @@ Serves RESUME_HERE.md priority 1: accuracy metrics for Table 2.
 
 Usage::
 
-    surrogate-safety-metrics \
+    surrogate-safety metrics \
         --observed observed_ttc.csv \
         --simulated simulated_ttc.csv \
         --column ttc_s \
@@ -155,7 +155,7 @@ def main(argv: list[str] | None = None) -> int:
         Exit code (0 on success).
     """
     parser = argparse.ArgumentParser(
-        prog="surrogate-safety-metrics",
+        prog="surrogate-safety metrics",
         description="Compare observed vs simulated SSM values.",
     )
     parser.add_argument(
@@ -208,7 +208,3 @@ def main(argv: list[str] | None = None) -> int:
         else:
             print(f"  {k:>22}: {v}")
     return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
