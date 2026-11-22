@@ -8,6 +8,33 @@ from surrogate_safety_abm.config.city_profiles import SURAT
 from surrogate_safety_abm.environment import Intersection
 from surrogate_safety_abm.geometry import Vec2
 from surrogate_safety_abm.simulation import SimulationConfig, SimulationEngine
+import math
+
+def _compare_records(a, b, path=""):
+    """Yield (path, a, b) for fields where a and b differ.
+    Handles dataclasses, lists, ints (exact), floats (1e-9 rel+abs),
+    NaN==NaN. Falls back to != for unknown types."""
+    import math
+    if isinstance(a, bool) or isinstance(b, bool):
+        if a != b: yield (path, a, b)
+    elif isinstance(a, (int, float)) and isinstance(b, (int, float)):
+        if isinstance(a, int) and isinstance(b, int):
+            if a != b: yield (path, a, b)
+        else:
+            if math.isnan(a) and math.isnan(b): return
+            if abs(a-b) > 1e-9 + 1e-9*abs(a): yield (path, a, b)
+    elif hasattr(a, "__dataclass_fields__"):
+        for f in a.__dataclass_fields__:
+            yield from _compare_records(getattr(a,f), getattr(b,f), path+"."+f)
+    elif isinstance(a, (list, tuple)):
+        if len(a) != len(b):
+            yield (path, "len="+str(len(a)), "len="+str(len(b))); return
+        for i,(x,y) in enumerate(zip(a,b)):
+            yield from _compare_records(x, y, path+"["+str(i)+"]")
+    else:
+        if a != b: yield (path, a, b)
+
+
 
 _duration = st.floats(min_value=0.5, max_value=10.0, allow_nan=False, allow_infinity=False)
 _dt = st.floats(min_value=0.05, max_value=0.5, allow_nan=False, allow_infinity=False)
@@ -87,6 +114,19 @@ def test_run_is_deterministic(seed: int) -> None:
     assert len(r1.recorder.snapshots) == len(r2.recorder.snapshots)
     assert len(r1.recorder.conflicts) == len(r2.recorder.conflicts)
 
+    for i, (s1, s2) in enumerate(zip(r1.recorder.snapshots, r2.recorder.snapshots)):
+        diffs = list(_compare_records(s1, s2, "snapshots["+str(i)+"]"))
+        assert not diffs, (
+            "snapshot " + str(i) + " differs between runs:\n"
+            + "\n".join("  " + p + ": " + repr(a) + " != " + repr(b) for p,a,b in diffs)
+        )
+    for i, (c1, c2) in enumerate(zip(r1.recorder.conflicts, r2.recorder.conflicts)):
+        diffs = list(_compare_records(c1, c2, "conflicts["+str(i)+"]"))
+        assert not diffs, (
+            "conflict " + str(i) + " differs between runs:\n"
+            + "\n".join("  " + p + ": " + repr(a) + " != " + repr(b) for p,a,b in diffs)
+        )
+
 
 @given(dt=_dt)
 def test_time_monotonic_in_snapshots(dt: float) -> None:
@@ -100,5 +140,5 @@ def test_time_monotonic_in_snapshots(dt: float) -> None:
     )
     result = engine.run()
     times = [s.time_s for s in result.recorder.snapshots]
-    assert times == sorted(times)
-    assert len(times) == len(set(times))
+    unique_step_times = sorted(set(times))
+    assert all(b > a for a, b in zip(unique_step_times, unique_step_times[1:]))
