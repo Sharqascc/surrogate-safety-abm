@@ -1,30 +1,10 @@
-.PHONY: install check ruff mypy test test-unit test-property test-integration clean
-
-install:
-	pip install -e ".[dev]"
-
-check: ruff mypy test
-	@echo "All quality checks passed."
-
-ruff:
-	ruff check src tests
-	ruff format --check src tests
-
-mypy:
-	mypy src
-
+.PHONY: bootstrap test audit clean
+bootstrap:
+	@python scripts/main.py bootstrap
 test:
-	pytest -q
-
-test-unit:
-	pytest tests/unit -v
-
-test-property:
-	pytest tests/property -v
-
-test-integration:
-	pytest tests/integration -v -m "not slow"
-
+	@python scripts/main.py test
+audit:
+	@python scripts/main.py audit
 clean:
-	rm -rf .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage coverage.xml .hypothesis
-	find . -type d -name __pycache__ -exec rm -rf {} +
+	@rm -rf .pytest_cache .venv-bootstrapped
+	@find . -name __pycache__ -prune -exec rm -rf {} +
