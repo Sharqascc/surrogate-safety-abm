@@ -26,7 +26,7 @@ Commands:
   simulate    Run the ABM simulation
   metrics     Compute TTC/PET/DRAC accuracy metrics
 
-Global flags (consumed before the subcommand):
+Global flags (consumed anywhere):
   --no-install    Fail instead of auto-installing missing deps
   -h, --help      Show this message
 

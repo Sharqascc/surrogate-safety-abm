@@ -3,17 +3,13 @@
 from __future__ import annotations
 
 import importlib.metadata
-import json
 import subprocess
 import sys
-import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
 _RUNTIME_DEPS = ("numpy", "pandas", "scipy", "matplotlib", "seaborn", "pydantic", "networkx")
 _DEV_DEPS = ("pytest", "hypothesis", "mypy", "ruff")
-_STAMP_PATH = Path.home() / ".cache" / "surrogate-safety" / "env-stamp.json"
-_STAMP_MAX_AGE_S = 24 * 60 * 60
 _PYTHON_MIN = (3, 11)
 
 
@@ -97,38 +93,9 @@ def install_deps(dev: bool = True) -> int:
     )
     if r.returncode == 0:
         print("Install complete.")
-        _write_stamp()
     else:
         print(f"Install failed with exit code {r.returncode}.", file=sys.stderr)
     return r.returncode
-
-
-def _write_stamp() -> None:
-    """Record a successful install with a dep hash and timestamp."""
-    _STAMP_PATH.parent.mkdir(parents=True, exist_ok=True)
-    _STAMP_PATH.write_text(
-        json.dumps(
-            {
-                "timestamp": time.time(),
-                "python": _check_python()[1],
-                "versions": {
-                    d: _installed_version(d) or "missing" for d in _RUNTIME_DEPS + _DEV_DEPS
-                },
-            },
-            indent=2,
-        )
-    )
-
-
-def is_fresh(max_age_s: int = _STAMP_MAX_AGE_S) -> bool:
-    """True iff a successful install was recorded within max_age_s."""
-    if not _STAMP_PATH.exists():
-        return False
-    try:
-        data = json.loads(_STAMP_PATH.read_text())
-        return (time.time() - float(data["timestamp"])) < max_age_s
-    except (json.JSONDecodeError, KeyError, ValueError, TypeError):
-        return False
 
 
 def ensure_environment(no_install: bool = False) -> int:
