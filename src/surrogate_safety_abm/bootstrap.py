@@ -140,11 +140,6 @@ def ensure_environment(no_install: bool = False) -> int:
     - If check fails and no_install=False, run install_deps().
       Then re-check and return 0 or 1.
     """
-    if is_fresh():
-        # Fast path: env-stamp says we installed recently
-        report = check_environment()
-        if report.ok:
-            return 0
     report = check_environment()
     if report.ok:
         return 0

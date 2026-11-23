@@ -38,6 +38,10 @@ from pathlib import Path
 from surrogate_safety_abm.analysis import AccuracyReport, compare
 
 
+class _MetricsCliError(Exception):
+    """User-facing CLI failure; main() converts to exit code 1."""
+
+
 def _read_column(path: Path, column: str) -> list[float]:
     """Read a numeric column from a CSV file.
 
@@ -49,24 +53,24 @@ def _read_column(path: Path, column: str) -> list[float]:
         The column values as a list of floats.
 
     Raises:
-        SystemExit: If the file is missing, empty, lacks the column,
+        _MetricsCliError: If the file is missing, empty, lacks the column,
             contains an empty or non-numeric cell, or has zero rows.
     """
     if not path.exists():
         print(f"file not found: {path}", file=sys.stderr)
-        raise SystemExit(1)
+        raise _MetricsCliError()
     with path.open(newline="") as f:
         reader = csv.DictReader(f)
         if reader.fieldnames is None:
             print(f"empty CSV (no header): {path}", file=sys.stderr)
-            raise SystemExit(1)
+            raise _MetricsCliError()
         if column not in reader.fieldnames:
             available = ", ".join(reader.fieldnames)
             print(
                 f"column {column!r} not in {path}; available: {available}",
                 file=sys.stderr,
             )
-            raise SystemExit(1)
+            raise _MetricsCliError()
         values: list[float] = []
         for i, row in enumerate(reader, start=2):
             raw = (row.get(column) or "").strip()
@@ -75,7 +79,7 @@ def _read_column(path: Path, column: str) -> list[float]:
                     f"empty value at {path}:{i} column={column}",
                     file=sys.stderr,
                 )
-                raise SystemExit(1)
+                raise _MetricsCliError()
             try:
                 values.append(float(raw))
             except ValueError:
@@ -83,10 +87,10 @@ def _read_column(path: Path, column: str) -> list[float]:
                     f"non-numeric at {path}:{i} column={column}: {raw!r}",
                     file=sys.stderr,
                 )
-                raise SystemExit(1) from None
+                raise _MetricsCliError() from None
     if not values:
         print(f"no rows in {path}", file=sys.stderr)
-        raise SystemExit(1)
+        raise _MetricsCliError()
     return values
 
 
@@ -124,7 +128,7 @@ def _summary_paired(rep: AccuracyReport) -> dict[str, int | float]:
         pearson_p on top of the unpaired fields.
 
     Raises:
-        SystemExit: If the two samples differ in length.
+        _MetricsCliError: If the two samples differ in length.
     """
     if rep.n_observed != rep.n_simulated:
         print(
@@ -132,7 +136,7 @@ def _summary_paired(rep: AccuracyReport) -> dict[str, int | float]:
             f"{rep.n_observed} observed vs {rep.n_simulated} simulated",
             file=sys.stderr,
         )
-        raise SystemExit(1)
+        raise _MetricsCliError()
     out = _summary_unpaired(rep)
     out.update(
         {
@@ -193,11 +197,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    obs = _read_column(args.observed, args.column)
-    sim = _read_column(args.simulated, args.column)
-    rep = compare(obs, sim)
-
-    summary = _summary_paired(rep) if args.mode == "paired" else _summary_unpaired(rep)
+    try:
+        obs = _read_column(args.observed, args.column)
+        sim = _read_column(args.simulated, args.column)
+        rep = compare(obs, sim)
+        summary = _summary_paired(rep) if args.mode == "paired" else _summary_unpaired(rep)
+    except _MetricsCliError:
+        return 1
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(summary, indent=2))

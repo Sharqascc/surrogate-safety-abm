@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
 
 from surrogate_safety_abm import metrics_cli
 
@@ -118,25 +117,19 @@ class TestErrors:
     def test_missing_observed_file(self, tmp_path: Path) -> None:
         sim = tmp_path / "sim.csv"
         _write_csv(sim, "ttc_s", [1.0, 2.0, 3.0])
-        with pytest.raises(SystemExit) as exc:
-            _run(tmp_path / "missing.csv", sim, "ttc_s", tmp_path / "out.json")
-        assert exc.value.code == 1
+        assert _run(tmp_path / "missing.csv", sim, "ttc_s", tmp_path / "out.json") == 1
 
     def test_missing_simulated_file(self, tmp_path: Path) -> None:
         obs = tmp_path / "obs.csv"
         _write_csv(obs, "ttc_s", [1.0, 2.0, 3.0])
-        with pytest.raises(SystemExit) as exc:
-            _run(obs, tmp_path / "missing.csv", "ttc_s", tmp_path / "out.json")
-        assert exc.value.code == 1
+        assert _run(obs, tmp_path / "missing.csv", "ttc_s", tmp_path / "out.json") == 1
 
     def test_missing_column(self, tmp_path: Path, capsys) -> None:
         obs = tmp_path / "obs.csv"
         sim = tmp_path / "sim.csv"
         _write_csv(obs, "ttc_s", [1.0, 2.0, 3.0])
         _write_csv(sim, "ttc_s", [1.5, 2.5, 3.5])
-        with pytest.raises(SystemExit) as exc:
-            _run(obs, sim, "pet_s", tmp_path / "out.json")
-        assert exc.value.code == 1
+        assert _run(obs, sim, "pet_s", tmp_path / "out.json") == 1
         captured = capsys.readouterr()
         assert "pet_s" in captured.err
 
@@ -145,27 +138,21 @@ class TestErrors:
         sim = tmp_path / "sim.csv"
         obs.write_text("")
         _write_csv(sim, "ttc_s", [1.0, 2.0])
-        with pytest.raises(SystemExit) as exc:
-            _run(obs, sim, "ttc_s", tmp_path / "out.json")
-        assert exc.value.code == 1
+        assert _run(obs, sim, "ttc_s", tmp_path / "out.json") == 1
 
     def test_header_only_no_rows(self, tmp_path: Path) -> None:
         obs = tmp_path / "obs.csv"
         sim = tmp_path / "sim.csv"
         obs.write_text("ttc_s\n")
         _write_csv(sim, "ttc_s", [1.0, 2.0])
-        with pytest.raises(SystemExit) as exc:
-            _run(obs, sim, "ttc_s", tmp_path / "out.json")
-        assert exc.value.code == 1
+        assert _run(obs, sim, "ttc_s", tmp_path / "out.json") == 1
 
     def test_non_numeric_value(self, tmp_path: Path) -> None:
         obs = tmp_path / "obs.csv"
         sim = tmp_path / "sim.csv"
         obs.write_text("ttc_s\n1.0\nnot_a_number\n3.0\n")
         _write_csv(sim, "ttc_s", [1.0, 2.0, 3.0])
-        with pytest.raises(SystemExit) as exc:
-            _run(obs, sim, "ttc_s", tmp_path / "out.json")
-        assert exc.value.code == 1
+        assert _run(obs, sim, "ttc_s", tmp_path / "out.json") == 1
 
     def test_empty_value_in_row(self, tmp_path: Path) -> None:
         # DictReader skips fully blank rows, so the empty cell must be
@@ -174,9 +161,7 @@ class TestErrors:
         sim = tmp_path / "sim.csv"
         obs.write_text("ttc_s,other\n1.0,a\n,b\n3.0,c\n")
         _write_csv(sim, "ttc_s", [1.0, 2.0, 3.0])
-        with pytest.raises(SystemExit) as exc:
-            _run(obs, sim, "ttc_s", tmp_path / "out.json")
-        assert exc.value.code == 1
+        assert _run(obs, sim, "ttc_s", tmp_path / "out.json") == 1
 
 
 class TestPairedSafety:
@@ -188,9 +173,7 @@ class TestPairedSafety:
         out = tmp_path / "out.json"
         _write_csv(obs, "ttc_s", [1.0, 2.0, 3.0])
         _write_csv(sim, "ttc_s", [1.5, 2.5])
-        with pytest.raises(SystemExit) as exc:
-            _run(obs, sim, "ttc_s", out, mode="paired")
-        assert exc.value.code == 1
+        assert _run(obs, sim, "ttc_s", out, mode="paired") == 1
         # no output file written when paired mode is refused
         assert not out.exists()
 
