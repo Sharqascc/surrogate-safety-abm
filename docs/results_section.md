@@ -1,6 +1,6 @@
 ## 3. Results
 
-### 3.1 Model validation against observed video data
+### 3.1 In-sample comparison against observed video data
 
 To assess the fidelity of the simulation framework, we compared simulated
 conflict statistics against those extracted from a 62-second surveillance
@@ -37,8 +37,7 @@ observed traffic density:
 The **calibrated evasive** model reproduces the observed conflict *rate*
 within a factor of 1.5× (62 vs. 96 episodes), matches the mean TTC within
 12% (1.64 s vs. 1.46 s), and matches the median DRAC within 25%
-(1.40 m/s² vs. 1.85 m/s²). This constitutes quantitative validation of the
-framework at the episode and severity-distribution levels.
+(1.40 m/s² vs. 1.85 m/s²). Because the evasive-braking thresholds were selected by inspection against this same video, the comparison is in-sample calibration, not held-out validation. The match indicates that the calibrated parameters reproduce observed aggregate statistics; independent validation requires held-out data.
 
 The **full behaviour** model — with default evasive braking — substantially
 under-predicts conflicts (5.3% serious vs. 75.0% observed), indicating that
@@ -81,9 +80,9 @@ This bracketing suggests that real-world driver behaviour is
 avoid catastrophic outcomes, but not so cautious as to eliminate serious
 near-misses.
 
-### 3.4 Multi-city comparison (unchanged from §3.1 of prior draft)
+### 3.4 Simulation-only comparison across three cities
 
-The multi-city simulation reported in Table 1 remains valid as a
+The three-city simulation reported in Table 1 (Vadodara, Surat, Ahmedabad; the latter two are simulation-only, without video validation) is presented as a
 *comparative* result under idealized behavioural conditions. The
 calibrated validation reported here provides the basis for interpreting
 those numbers as representing a *lower bound* on serious-conflict

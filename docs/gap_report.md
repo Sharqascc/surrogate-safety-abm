@@ -20,13 +20,11 @@ Status: audit complete. Last verified: 2026-11-22 (HEAD 71a6697 + PRs 10-12).
 
 | # | gap | severity |
 |---|---|---|
-| 1 | No observed Vaidya data in `data/raw/` — Table 2 cannot be reproduced from the repo | 🔴 paper-blocking |
-| 2 | No calibration code — evasive braking thresholds (2.0s, 1.0s) are hardcoded in `metrics_cli.py`; no fit function exists | 🔴 paper-blocking |
+| 1 | No observed Vaidya data in `data/raw/` — Table 2 cannot be reproduced from the repo. Consequence: `src/surrogate_safety_abm/data/*` shows 0% test coverage; the video pipeline is not exercised by any test. | 🔴 paper-blocking |
+| 2 | No calibration code — evasive braking thresholds (2.0s, 1.0s) are hardcoded in `cli.py:25-26`; no fit function exists | 🔴 paper-blocking |
 | 3 | `SimulationConfig.seed` not read by `engine.py` — determinism comes only from `scenario.py` | 🟡 fix before stochastic behavior added |
 | 4 | `extreme_value.fit_ttc_gpd` untested | 🟡 next round |
-| 5 | `geometry.Vec2` class untested | 🟡 next round |
-| 6 | `severity.classify_severity` untested | 🟡 no standard answer key |
-| 7 | `behaviour/*` has 30 tests (branches covered) but no multi-seed sensitivity | 🟡 |
+| 5 | `behaviour/*` has 30 tests (branches covered) but no multi-seed sensitivity | 🟡 |
 
 ## Non-goals (would be false properties)
 

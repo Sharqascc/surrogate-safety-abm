@@ -5,8 +5,7 @@
 This work makes three contributions to surrogate safety analysis at
 unsignalized intersections in India:
 
-**Finding 1 — The behavioural simulation framework can be validated
-against short-duration video.** A 62-second surveillance video at a
+**Finding 1 — The behavioural simulation framework can be calibrated in-sample against short-duration video.** A 62-second surveillance video at a
 single intersection suffices to calibrate the model's evasive-braking
 parameters such that conflict rate and severity distributions match
 observations within a factor of 1.5×.
@@ -26,8 +25,7 @@ it is not as smooth or as consistent as the default evasive model assumes.
 
 ### 4.2 Policy implications
 
-The multi-city comparison reported in Table 1 and the calibrated
-validation in Table 2 together support two policy recommendations:
+The three-city simulation comparison (Table 1; Surat and Ahmedabad are simulation-only) and the in-sample calibration against Vaidya observations (Table 2) together motivate two policy recommendations:
 
 1. **Speed reduction remains the highest-leverage intervention.** The
    monotonic relationship between 85th-percentile approach speed and

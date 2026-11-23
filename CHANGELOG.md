@@ -10,6 +10,16 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - `LICENSE` (MIT).
 - `CHANGELOG.md`.
 
+### Changed
+- `docs/results_section.md` §3.1 reframed as in-sample comparison (was
+  "model validation"); §3.4 reframed as simulation-only city comparison.
+- `docs/discussion_section.md` Findings 1 and §4.2 qualified: the
+  calibration is in-sample against a single 62-second video; Surat and
+  Ahmedabad are simulation-only.
+- `docs/gap_report.md` gaps #5 (`Vec2`) and #6 (`classify_severity`)
+  removed — both now covered by tests. Gap #1 clarified: `data/*` has
+  0% coverage because the video pipeline cannot run without raw data.
+
 ### Fixed
 - `test_time_monotonic_in_snapshots` now allows multiple agents per
   timestep (was `len(times) == len(set(times))`, which only holds for
