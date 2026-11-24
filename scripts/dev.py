@@ -59,7 +59,7 @@ def cmd_audit(_):
 COMMANDS = {"bootstrap": cmd_bootstrap, "test": cmd_test, "audit": cmd_audit}
 def main(argv):
     if not argv or argv[0] in ("-h","--help"):
-        print("usage: python scripts/main.py [bootstrap|test|audit]"); return 0
+        print("usage: python scripts/dev.py [bootstrap|test|audit]"); return 0
     return COMMANDS.get(argv[0], lambda _: 2)(argv[1:])
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

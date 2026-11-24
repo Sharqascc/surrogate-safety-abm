@@ -80,7 +80,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--strict-markers --strict-config -ra --cov=surrogate_safety_abm --cov-report=term-missing"
+addopts = "--strict-markers --strict-config -ra --cov=surrogate_safety_abm --cov-report=term-missing --cov-fail-under=70"
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: end-to-end tests that span multiple modules",
