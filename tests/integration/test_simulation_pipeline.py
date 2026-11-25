@@ -113,7 +113,7 @@ class TestFullEngineRun:
             city=SURAT,
             intersection=intersection,
             agents=agents,
-            config=SimulationConfig(duration_s=20.0, time_step_s=0.2, seed=42),
+            config=SimulationConfig(duration_s=20.0, time_step_s=0.2),
         )
         result = engine.run()
 
