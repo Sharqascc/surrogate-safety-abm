@@ -18,6 +18,7 @@ dependencies = [
     "seaborn>=0.13",
     "pydantic>=2.5",
     "networkx>=3.2",
+    "opencv-python-headless>=4.8",
 ]
 
 [project.scripts]
