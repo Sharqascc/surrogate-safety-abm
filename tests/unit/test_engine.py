@@ -23,7 +23,6 @@ class TestSimulationConfig:
         cfg = SimulationConfig()
         assert cfg.duration_s == 60.0
         assert cfg.time_step_s == 0.1
-        assert cfg.seed is None
 
     def test_duration_positive(self) -> None:
         with pytest.raises(ValueError, match="duration_s"):

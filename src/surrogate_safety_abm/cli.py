@@ -115,7 +115,6 @@ def main(argv: list[str] | None = None) -> int:
         ttc_threshold_s=args.ttc_threshold,
         min_gap_m=args.min_gap,
         intersection_zone_m=args.intersection_zone,
-        seed=args.seed,
     )
 
     try:
@@ -129,7 +128,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"agents:           {len(agents)}")
         print(f"behaviours:       {[type(b).__name__ for b in behaviours]}")
         print(f"duration:         {config.duration_s}s (dt={config.time_step_s}s)")
-        print(f"seed:             {config.seed}")
+        print(f"seed:             {args.seed}")
         print(f"conflict_radius:  {config.conflict_radius_m}m")
         print(f"ttc_threshold:    {config.ttc_threshold_s}s")
         print(f"out:              {args.out}")

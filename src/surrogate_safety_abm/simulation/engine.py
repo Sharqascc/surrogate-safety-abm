@@ -43,7 +43,6 @@ class SimulationConfig:
         intersection_zone_m: Half-side (m) of the square zone
             around the intersection centre. Only pairs with both
             agents inside are evaluated.
-        seed: Optional RNG seed for reproducibility.
     """
 
     duration_s: float = 60.0
@@ -54,7 +53,6 @@ class SimulationConfig:
     min_gap_m: float = DEFAULT_MIN_GAP_M
     intersection_zone_m: float = 10.0
     min_speed_mps: float = 1.4
-    seed: int | None = None
 
     def __post_init__(self) -> None:
         """Validate the configuration values."""

@@ -8,6 +8,7 @@ from surrogate_safety_abm.config.city_profiles import SURAT
 from surrogate_safety_abm.environment import Intersection
 from surrogate_safety_abm.geometry import Vec2
 from surrogate_safety_abm.simulation import SimulationConfig, SimulationEngine
+from surrogate_safety_abm.simulation.scenario import generate_agents
 import math
 
 def _compare_records(a, b, path=""):
@@ -98,14 +99,12 @@ def test_run_is_deterministic(seed: int) -> None:
     """Two runs with the same seed produce identical event counts."""
 
     def build() -> SimulationEngine:
+        agents = generate_agents(SURAT, seed=seed, n_vehicles=4)
         return SimulationEngine(
             city=SURAT,
             intersection=_empty(),
-            agents=[
-                VehicleAgent("a", Vec2(-30.0, 0.0), 8.0, 0.0),
-                VehicleAgent("b", Vec2(30.0, 0.0), 8.0, 3.14159265),
-            ],
-            config=SimulationConfig(duration_s=3.0, time_step_s=0.2, seed=seed),
+            agents=agents,
+            config=SimulationConfig(duration_s=3.0, time_step_s=0.2),
         )
 
     r1 = build().run()
