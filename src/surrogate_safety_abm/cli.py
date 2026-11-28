@@ -61,6 +61,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--city", choices=sorted(CITY_PROFILES.keys()), default="surat")
     parser.add_argument(
+        "--site",
+        choices=["qismat_chowck", "Akota_garden"],
+        default=None,
+        help="use a real OSM intersection as the simulation site",
+    )
+    parser.add_argument(
         "--vehicle-count",
         type=int,
         default=None,
@@ -92,7 +98,28 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     city = CITY_PROFILES[args.city]
-    intersection = Intersection.four_legged(intersection_id=args.city)
+    if args.site is not None:
+        import json
+        manifest_path = Path("data/intersections/manifest.json")
+        if not manifest_path.exists():
+            for parent in [Path.cwd(), *Path.cwd().parents]:
+                candidate = parent / "data" / "intersections" / "manifest.json"
+                if candidate.exists():
+                    manifest_path = candidate
+                    break
+        if not manifest_path.exists():
+            print("error: manifest.json not found", file=sys.stderr)
+            return 2
+        manifest = json.loads(manifest_path.read_text())
+        if args.site not in manifest:
+            print(f"error: unknown site {args.site!r}", file=sys.stderr)
+            return 2
+        graphml = manifest_path.parent / f"{args.site}.graphml"
+        intersection = Intersection.from_osm(
+            graphml, manifest[args.site]["node_id"], intersection_id=args.site
+        )
+    else:
+        intersection = Intersection.four_legged(intersection_id=args.city)
 
     if args.vehicle_count is not None:
         if args.vehicle_count < 1:

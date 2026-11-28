@@ -44,3 +44,14 @@ class Vec2:
 
 
 ORIGIN = Vec2(0.0, 0.0)
+
+
+def lat_lon_to_local_metres(
+    lat0: float, lon0: float, lat1: float, lon1: float
+) -> tuple[float, float]:
+    """Approximate local Cartesian (east, north) offsets in metres."""
+    import math
+    R = 6_371_000.0
+    x_east = math.radians(lon1 - lon0) * R * math.cos(math.radians(lat0))
+    y_north = math.radians(lat1 - lat0) * R
+    return x_east, y_north

@@ -14,7 +14,11 @@ from surrogate_safety_abm.environment.conflict import (
     ConflictPoint,
     ConflictType,
 )
-from surrogate_safety_abm.geometry import ORIGIN, Vec2
+from surrogate_safety_abm.geometry import (
+    ORIGIN,
+    Vec2,
+    lat_lon_to_local_metres,
+)
 
 # Default cardinal directions for the four arms
 _ARM_ANGLES_RAD: dict[str, float] = {
@@ -121,3 +125,51 @@ class Intersection:
                 )
             )
         return ic
+
+    @classmethod
+    def from_osm(
+        cls,
+        graphml_path: "str | Path",
+        node_id: str,
+        intersection_id: str | None = None,
+        min_arm_length_m: float = 5.0,
+    ) -> "Intersection":
+        """Build an Intersection from an OSM GraphML extract."""
+        import math
+        from pathlib import Path
+
+        import networkx as nx
+
+        path = Path(graphml_path)
+        G = nx.read_graphml(path)
+        if node_id not in G.nodes:
+            raise ValueError(f"node {node_id!r} not found in {path}")
+
+        center = G.nodes[node_id]
+        c_lat, c_lon = float(center["y"]), float(center["x"])
+
+        neighbours = sorted(set(G.successors(node_id)) | set(G.predecessors(node_id)))
+        ic = cls(intersection_id=intersection_id or f"osm:{node_id}")
+
+        kept = 0
+        for nb in neighbours:
+            n = G.nodes[nb]
+            n_lat, n_lon = float(n["y"]), float(n["x"])
+            x_east, y_north = lat_lon_to_local_metres(c_lat, c_lon, n_lat, n_lon)
+            dist = math.hypot(x_east, y_north)
+            if dist < min_arm_length_m:
+                continue
+            compass = math.atan2(x_east, y_north) % (2 * math.pi)
+            angle = (math.pi / 2 - compass) % (2 * math.pi)
+            kept += 1
+            ic.add_arm(Approach(
+                arm_id=f"A{kept}", num_lanes=1,
+                length_m=dist, angle_rad=angle,
+            ))
+
+        if kept < 2:
+            raise ValueError(
+                f"node {node_id!r} has only {kept} arm(s) after filtering; not a junction"
+            )
+        return ic
+
